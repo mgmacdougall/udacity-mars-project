@@ -1,5 +1,5 @@
 let store = Immutable.Map({
-  user: {name:"Student!"},
+  user: { name: "Student!" },
   apod: "",
   rovers: ["Curiosity", "Opportunity", "Spirit"],
 });
@@ -26,6 +26,7 @@ const App = (state) => {
         <main>
             ${renderComponent(renderGreeting(user))}
             ${renderComponent(renderSection(apod))}
+            ${renderComponent(renderRoverSection(state))}
         </main>
         <footer></footer>
     `;
@@ -50,7 +51,7 @@ const renderComponent = (sec) => sec;
  * @param {*} data incoming data that is used by the Greeting component.
  * @returns the greeting to be rendered.
  */
-const renderPageGreeting = (data) => `<h1>Welcome, ${data.name}!</h1>`
+const renderPageGreeting = (data) => `<h1>Welcome, ${data.name}!</h1>`;
 
 /**
  *
@@ -61,7 +62,7 @@ const renderGreeting = (data) => {
     data.name = "User";
     return renderPageGreeting(data);
   }
-    return renderPageGreeting(data);
+  return renderPageGreeting(data);
 };
 
 /**
@@ -83,8 +84,10 @@ const renderSection = (data) => {
             but generally help with discoverability of relevant imagery.
         </p>
         </section> 
-        ${renderComponent(renderImageSection(data))}
-        `;
+         
+        `
+        //${renderComponent(renderImageSection(data))}
+        ;
 };
 
 /**
@@ -121,27 +124,57 @@ const renderRoverList = (data) => {
  */
 const renderOptionItem = (item) => `<option value="${item}">${item}</option>`;
 
+/**
+ * Rovers rendering section.
+ * @returns Rendering component for rovers.
+ */
+const renderRoverSection = () => {
+  return `
+    <section class="rovers-container">
+    <h2>Here are the rovers</h2>
+    <div class="card-container">
+      ${convertArrayToString([1, 2, 3].map((e) => renderCardWithImage(e)))}
+      </div>
+    </section>
+    `;
+};
 
-
+/**
+ * Renders a card with the given information.
+ * @param {} data the data to render in the card.
+ * @returns a card with the information filled out.
+ */
+const renderCardWithImage = (data) => {
+  return `
+  <article class="card">
+    <div class="container">
+        <h4><b>Rover Details Place Holder</b></h4>
+        <img class="rover-img" src="./images/curiosity-base.jpg" alt="Sample photo">
+        <p>${data}</p>
+        <p>Launch date</p>
+    </div>
+  </article>
+  `;
+};
 
 /**
  * Helper function to get the current date
  * @returns the current date
  */
- const getCurrentDate = () => new Date();
+const getCurrentDate = () => new Date();
 
- /**
-  *
-  * @returns The today's date
-  */
- const getTodaysDate = () => getCurrentDate().getDate();
- 
- /**
-  * Helper function to create a new date with a given date
-  * @param {*} _date date to create.
-  * @returns The new date
-  */
- const createDate = (_date) => new Date(_date);
+/**
+ *
+ * @returns The today's date
+ */
+const getTodaysDate = () => getCurrentDate().getDate();
+
+/**
+ * Helper function to create a new date with a given date
+ * @param {*} _date date to create.
+ * @returns The new date
+ */
+const createDate = (_date) => new Date(_date);
 
 /**
  * This is the image of the day component

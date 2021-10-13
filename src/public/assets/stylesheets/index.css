@@ -3,7 +3,7 @@
 body {
   display: flex;
   flex-direction: column;
-  font-family: Arial;
+  font-family: 'Open Sans', sans-serif;
   min-height: 100vh;
 }
 
@@ -20,6 +20,26 @@ footer {
   /* footer styles */
 }
 
+.card-container {
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+.card {
+  display: flex;
+  width: 350px;
+  box-shadow: 5px 5px 15px 5px #000000;
+  margin: 10px;
+}
+
+.container {
+  text-align: center;
+}
+
+.rover-img {
+  max-width: 100%;
+}
 /* -------------------  TABLET  --------------------- */
 @media (min-width: 768px) {
   /* use mobile */
