@@ -1,5 +1,5 @@
 let store = Immutable.Map({
-  user: { name: "Student" },
+  user: {name:"Student!"},
   apod: "",
   rovers: ["Curiosity", "Opportunity", "Spirit"],
 });
@@ -22,7 +22,7 @@ const App = (state) => {
   let user = state.get("user");
   let rovers = state.get("rovers");
   return `
-        <header>${renderComponent(renderRoverList(rovers))}</header>
+  <header>${renderComponent(renderRoverList(rovers))}</header>
         <main>
             ${renderComponent(renderGreeting(user))}
             ${renderComponent(renderSection(apod))}
@@ -50,16 +50,18 @@ const renderComponent = (sec) => sec;
  * @param {*} data incoming data that is used by the Greeting component.
  * @returns the greeting to be rendered.
  */
-const renderGreeting = (data) => {
-  if (data.name) {
-    return `
-            <h1>Welcome, ${data.name}!</h1>
-        `;
-  }
+const renderPageGreeting = (data) => `<h1>Welcome, ${data.name}!</h1>`
 
-  return `
-        <h1>Hello!</h1>
-    `;
+/**
+ *
+ * @returns Default greeting.
+ */
+const renderGreeting = (data) => {
+  if (data.name === undefined) {
+    data.name = "User";
+    return renderPageGreeting(data);
+  }
+    return renderPageGreeting(data);
 };
 
 /**
@@ -80,10 +82,24 @@ const renderSection = (data) => {
             explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
             but generally help with discoverability of relevant imagery.
         </p>
-        ${renderComponent(renderImageOfTheDay(data))}
-    </section> 
-    `;
+        </section> 
+        ${renderComponent(renderImageSection(data))}
+        `;
 };
+
+/**
+ * Renders the Image Section for the APOD
+ * @param {*} data
+ * @returns
+ */
+const renderImageSection = (data) => {
+  return `<section>
+        ${renderComponent(renderImageOfTheDay(data))}
+  </section>`;
+};
+
+/** Helper function to convert arrays to string values */
+const convertArrayToString = (arr) => arr.join("");
 
 /**
  * Renders the Rover list for the end user.
@@ -91,10 +107,11 @@ const renderSection = (data) => {
  */
 const renderRoverList = (data) => {
   return `
+  <label for="rovers-select">Choose a Rover To View:</label>
   <select name="rovers" id="rovers" placeholder="Select a rover">
-    ${data.map((e)=>renderOptionItem(e))}
+    ${convertArrayToString(data.map((e) => renderOptionItem(e)))}
   </select>
-  `
+  `;
 };
 
 /**
@@ -102,8 +119,29 @@ const renderRoverList = (data) => {
  * @param {*} item to populate the option itme
  * @returns an individual option item with 'value' and 'item' set to the item
  */
-const renderOptionItem = (item) => `<option value=${item}>${item}</option>`;
+const renderOptionItem = (item) => `<option value="${item}">${item}</option>`;
 
+
+
+
+/**
+ * Helper function to get the current date
+ * @returns the current date
+ */
+ const getCurrentDate = () => new Date();
+
+ /**
+  *
+  * @returns The today's date
+  */
+ const getTodaysDate = () => getCurrentDate().getDate();
+ 
+ /**
+  * Helper function to create a new date with a given date
+  * @param {*} _date date to create.
+  * @returns The new date
+  */
+ const createDate = (_date) => new Date(_date);
 
 /**
  * This is the image of the day component
@@ -111,18 +149,8 @@ const renderOptionItem = (item) => `<option value=${item}>${item}</option>`;
  * @returns the image of the date
  */
 const renderImageOfTheDay = (data) => {
-  return ImageOfTheDay(data);
-};
-
-// Example of a pure function that renders infomation requested from the backend
-const ImageOfTheDay = (data) => {
   // If image does not already exist, or it is not from today -- request it again
-  const today = new Date();
-  const photodate = new Date(data.date);
-  console.log(photodate.getDate(), today.getDate());
-
-  // console.log(photodate.getDate() === today.getDate());
-  if (!data.image || data.date === today.getDate()) {
+  if (!data.image || data.date === getTodaysDate()) {
     getImageOfTheDay(store);
   }
 
