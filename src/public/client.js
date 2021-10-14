@@ -2,6 +2,7 @@ let store = Immutable.Map({
   user: { name: "Student!" },
   apod: "",
   rovers: ["Curiosity", "Opportunity", "Spirit"],
+  roverData:Immutable.List([])
 });
 
 // add our markup to the page
@@ -12,6 +13,10 @@ const updateStore = (store, newState) => {
   render(root, newStore);
 };
 
+const updateRoverDataStore = (store, newState) =>{
+  let newStore = store.get("roverData");
+  newStore.push(newState)
+};
 const render = async (root, state) => {
   root.innerHTML = App(state);
 };
@@ -26,7 +31,7 @@ const App = (state) => {
         <main>
             ${renderComponent(renderGreeting(user))}
             ${renderComponent(renderSection(apod))}
-            ${renderComponent(renderRoverSection(state))}
+            ${renderComponent(renderRoverSection(rovers))}
         </main>
         <footer></footer>
     `;
@@ -124,16 +129,17 @@ const renderRoverList = (data) => {
  */
 const renderOptionItem = (item) => `<option value="${item}">${item}</option>`;
 
+
 /**
  * Rovers rendering section.
  * @returns Rendering component for rovers.
  */
-const renderRoverSection = () => {
+const renderRoverSection = (data) => {
   return `
     <section class="rovers-container">
     <h2>Here are the rovers</h2>
     <div class="card-container">
-      ${convertArrayToString([1, 2, 3].map((e) => renderCardWithImage(e)))}
+      ${convertArrayToString(data.map((e) => renderCardWithImage(e)))}
       </div>
     </section>
     `;
@@ -145,10 +151,12 @@ const renderRoverSection = () => {
  * @returns a card with the information filled out.
  */
 const renderCardWithImage = (data) => {
+  const roverData = getRoverDetails(data);
+
   return `
   <article class="card">
     <div class="container">
-        <h4><b>Rover Details Place Holder</b></h4>
+        <h4><b>${data}</b></h4>
         <img class="rover-img" src="./images/curiosity-base.jpg" alt="Sample photo">
         <p>${data}</p>
         <p>Launch date</p>
@@ -214,3 +222,14 @@ const getImageOfTheDay = (state) => {
     .then((res) => res.json())
     .then((apod) => updateStore(store, apod));
 };
+
+/**
+ * 
+ * @param {*} name 
+ */
+const getRoverDetails = (name) =>{
+
+  fetch(`http://localhost:3000/rover/?name=${name}`)
+    .then((res) => res.json())
+    .then((roverData) => updateRoverDataStore(store, roverData));
+}
