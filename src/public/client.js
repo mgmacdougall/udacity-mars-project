@@ -2,21 +2,28 @@ let store = Immutable.Map({
   user: { name: "Student!" },
   apod: "",
   rovers: ["Curiosity", "Opportunity", "Spirit"],
-  roverData:Immutable.List([])
+  roverData: [],
 });
 
 // add our markup to the page
 const root = document.getElementById("root");
 
 const updateStore = (store, newState) => {
-  let newStore = store.set("apod", newState);
-  render(root, newStore);
+  let newStore = store.merge(newState)
+  Object.assign(store, newStore)
+  render(root, store)
+}
+
+const updateRoverDataStore = (store, newState) => {
+  let newStore = store.set("roverData", newState);
+  updateStore(store, newStore)
 };
 
-const updateRoverDataStore = (store, newState) =>{
-  let newStore = store.get("roverData");
-  newStore.push(newState)
-};
+const updateImageStore = (store, newState)=>{
+  let newImage = store.set('apod',newState);
+  updateStore(store, newImage);
+}
+
 const render = async (root, state) => {
   root.innerHTML = App(state);
 };
@@ -31,7 +38,7 @@ const App = (state) => {
         <main>
             ${renderComponent(renderGreeting(user))}
             ${renderComponent(renderSection(apod))}
-            ${renderComponent(renderRoverSection(rovers))}
+            ${renderComponent(renderRoverDataSection(state))}
         </main>
         <footer></footer>
     `;
@@ -39,9 +46,12 @@ const App = (state) => {
 
 // listening for load event because page should load before any JS is called
 window.addEventListener("load", () => {
-  render(root, store);
+  getAllRoversData(store);
 });
 
+// window.addEventListener("load", ()=>{
+//   getImageOfTheDay(store);
+// })
 // ------------------------------------------------------  COMPONENTS
 /**
  * Component render.  Job is to render the given component.
@@ -89,10 +99,8 @@ const renderSection = (data) => {
             but generally help with discoverability of relevant imagery.
         </p>
         </section> 
-         
-        `
-        //${renderComponent(renderImageSection(data))}
-        ;
+        `;
+        // ${renderComponent(renderImageSection(data))}
 };
 
 /**
@@ -129,6 +137,13 @@ const renderRoverList = (data) => {
  */
 const renderOptionItem = (item) => `<option value="${item}">${item}</option>`;
 
+// For rendering the main content.
+const renderRoverDataSection = (state) => {
+  let _roverData = state.get('roverData')
+    return `
+      <div>${renderRoverSection(_roverData)}</div>
+  `;
+  };
 
 /**
  * Rovers rendering section.
@@ -139,7 +154,7 @@ const renderRoverSection = (data) => {
     <section class="rovers-container">
     <h2>Here are the rovers</h2>
     <div class="card-container">
-      ${convertArrayToString(data.map((e) => renderCardWithImage(e)))}
+      ${convertArrayToString(data.map((rover,idx) => renderCardWithImage(rover,idx)))}
       </div>
     </section>
     `;
@@ -150,16 +165,21 @@ const renderRoverSection = (data) => {
  * @param {} data the data to render in the card.
  * @returns a card with the information filled out.
  */
-const renderCardWithImage = (data) => {
-  const roverData = getRoverDetails(data);
+const renderCardWithImage = (data, id) => {
+  const name = data.photo_manifest.name;
+  const launchDate = data.photo_manifest.launch_date;
+  const landingDate = data.photo_manifest.landing_date;
+  const recentPhoto = data.photo_manifest.max_date;
 
   return `
   <article class="card">
-    <div class="container">
-        <h4><b>${data}</b></h4>
+    <div class="container" id=${"rover".concat("-", id)}>
+        <h4><b>${name}</b></h4>
         <img class="rover-img" src="./images/curiosity-base.jpg" alt="Sample photo">
-        <p>${data}</p>
-        <p>Launch date</p>
+        <p>Launch date: ${launchDate} </p>
+        <p>Landing date: ${landingDate} </p>
+        <p>Most Recent photos: ${recentPhoto} </p>
+        <p>Most Recent photos date: recentPhoto </p>
     </div>
   </article>
   `;
@@ -213,23 +233,21 @@ const renderImageOfTheDay = (data) => {
   }
 };
 
-// ------------------------------------------------------  API CALLS
 
-// Example API call
+// Fetches the NASA image of the day
 const getImageOfTheDay = (state) => {
-  let { apod } = state;
+  // let { apod } = state;
   fetch(`http://localhost:3000/apod`)
     .then((res) => res.json())
-    .then((apod) => updateStore(store, apod));
+    .then((apod) => updateImageStore(store, {apod}));
 };
 
 /**
- * 
- * @param {*} name 
+ * Fetches data for all the rovers
  */
-const getRoverDetails = (name) =>{
-
-  fetch(`http://localhost:3000/rover/?name=${name}`)
+const getAllRoversData = (state) => {
+  // let {roverData} = state;
+  fetch(`http://localhost:3000/rovers`)
     .then((res) => res.json())
-    .then((roverData) => updateRoverDataStore(store, roverData));
-}
+    .then((roverData) => updateRoverDataStore(store, roverData))
+};
