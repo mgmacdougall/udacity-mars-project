@@ -4,6 +4,7 @@ let store = Immutable.Map({
   rovers: ["Curiosity", "Opportunity", "Spirit"],
   roverData: [],
   roverPhotos: [],
+  activeRover:""
 });
 
 // add our markup to the page
@@ -25,19 +26,40 @@ const updateImageStore = (store, newState) => {
   updateStore(store, newImage);
 };
 
-const updateRoverPhotos = (store, newState) => {
+const updateRoverPhotos = (store, newState, rName) => {
   let newImage = store.set("roverPhotos", newState);
-  updateStore(store, newImage);
+  let newUpdate = newImage.set("activeRover", rName );
+  updateStore(store, newUpdate);
 };
 
 const render = async (root, state) => {
   root.innerHTML = App(state);
   await initListeners();
+  await applyChangedState(state);
 };
 
+/**
+ * Apply changeStateStyles
+ * @param {*} currentState 
+ * @returns 
+ */
+const applyChangedState = (currentState) =>{
+  const cards = document.querySelectorAll(".card");
+  let activeRover = currentState.get("activeRover");
+  if(activeRover===""){
+    return;
+  }
+
+  cards.forEach((card)=>{
+      if(card.id && activeRover !=card.id){
+        card.classList.add('hidden');
+      }
+  })
+
+}
 ///// Attached event listerners takes place after the App root rendered complete
 const initListeners = async () => {
-  const spiritCard = document.getElementById("Spirit");
+  const cards = document.querySelectorAll(".card");
   const roverSelection = document.getElementById("rovers");
 
   roverSelection.addEventListener("change", (e) => {
@@ -46,7 +68,18 @@ const initListeners = async () => {
     document.getElementById(selectedItem).scrollIntoView();
   });
 
-  spiritCard.addEventListener("click", (e) => console.log(e.target));
+  cards.forEach((item)=> item.addEventListener('click', (event)=>{
+    event.stopPropagation()
+    const cardId = event.currentTarget.id;
+    event.currentTarget.className="active"
+    getLatestImageByRoverName(store, cardId);
+  }));
+
+  // toggle the active if there
+
+
+
+
 };
 
 // create content
@@ -179,15 +212,14 @@ const renderCardWithImage = (data) => {
   const recentPhoto = data.photo_manifest.max_date;
 
   return `
-  <article class="card"  id=${name}>
-    <div class="container">
+  <article class="card" id=${name}>
+    <div class="container" >
         <h4><b>${name}</b></h4>
         <img class="rover-img" src="./images/${name}-base.jpg" alt="Sample photo">
         <p>Launch date: ${launchDate} </p>
         <p>Landing date: ${landingDate} </p>
         <p>Most Recent photos: ${recentPhoto} </p>
         <p>Most Recent photos date: recentPhoto </p>
-        <button>View photos</button>
       </div>
   </article>
   `;
@@ -266,5 +298,5 @@ const getLatestImageByRoverName = (state, rover) => {
   console.log(state, rover);
   fetch(`http://localhost:3000/rover?name=${rover}`)
     .then((res) => res.json())
-    .then((roverData) => updateRoverPhotos(store, roverData));
+    .then((roverPhotos) => updateRoverPhotos(store, roverPhotos, rover));
 };
