@@ -1,31 +1,45 @@
 let store = Immutable.Map({
-  user: { name: "Student!" },
+  user: { name: "Mike" },
   apod: "",
   rovers: ["Curiosity", "Opportunity", "Spirit"],
   roverData: [],
+  roverPhotos: [],
 });
 
 // add our markup to the page
 const root = document.getElementById("root");
 
 const updateStore = (store, newState) => {
-  let newStore = store.merge(newState)
-  Object.assign(store, newStore)
-  render(root, store)
-}
+  let newStore = store.merge(newState);
+  Object.assign(store, newStore);
+  render(root, store);
+};
 
 const updateRoverDataStore = (store, newState) => {
   let newStore = store.set("roverData", newState);
-  updateStore(store, newStore)
+  updateStore(store, newStore);
 };
 
-const updateImageStore = (store, newState)=>{
-  let newImage = store.set('apod',newState);
+const updateImageStore = (store, newState) => {
+  let newImage = store.set("apod", newState);
   updateStore(store, newImage);
-}
+};
+
+const updateRoverPhotos = (store, newState) => {
+  let newImage = store.set("roverPhotos", newState);
+  updateStore(store, newImage);
+};
 
 const render = async (root, state) => {
   root.innerHTML = App(state);
+  await initListeners();
+};
+
+///// Attached event listerners takes place after the App root rendered complete
+const initListeners = async () => {
+  document
+    .getElementById("Spirit")
+    .addEventListener("click", (e) => console.log(e.target));
 };
 
 // create content
@@ -37,7 +51,7 @@ const App = (state) => {
   <header>${renderComponent(renderRoverList(rovers))}</header>
         <main>
             ${renderComponent(renderGreeting(user))}
-            ${renderComponent(renderSection(apod))}
+            ${renderComponent(renderMainSection(apod))}
             ${renderComponent(renderRoverDataSection(state))}
         </main>
         <footer></footer>
@@ -46,13 +60,9 @@ const App = (state) => {
 
 // listening for load event because page should load before any JS is called
 window.addEventListener("load", () => {
-  getAllRoversData(store);
+  getAllRoversData(store); // called to populate the rovers immediately
 });
 
-// window.addEventListener("load", ()=>{
-//   getImageOfTheDay(store);
-// })
-// ------------------------------------------------------  COMPONENTS
 /**
  * Component render.  Job is to render the given component.
  * This is a controller function that acts as an interface between the root, and the child components
@@ -85,22 +95,12 @@ const renderGreeting = (data) => {
  * @param {*} data to build other components
  * @returns
  */
-const renderSection = (data) => {
+const renderMainSection = (data) => {
   return `
     <section>
-        <h3>Put things on the page!</h3>
-        <p>Here is an example section.</p>
-        <p>
-            One of the most popular websites at NASA is the Astronomy Picture of the Day. In fact, this website is one of
-            the most popular websites across all federal agencies. It has the popular appeal of a Justin Bieber video.
-            This endpoint structures the APOD imagery and associated metadata so that it can be repurposed for other
-            applications. In addition, if the concept_tags parameter is set to True, then keywords derived from the image
-            explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
-            but generally help with discoverability of relevant imagery.
-        </p>
+            ${renderComponent(renderImageSection(data))}
         </section> 
         `;
-        // ${renderComponent(renderImageSection(data))}
 };
 
 /**
@@ -123,7 +123,7 @@ const convertArrayToString = (arr) => arr.join("");
  */
 const renderRoverList = (data) => {
   return `
-  <label for="rovers-select">Choose a Rover To View:</label>
+  <label for="rovers-select">Choose a Rover To More Details:</label>
   <select name="rovers" id="rovers" placeholder="Select a rover">
     ${convertArrayToString(data.map((e) => renderOptionItem(e)))}
   </select>
@@ -139,11 +139,11 @@ const renderOptionItem = (item) => `<option value="${item}">${item}</option>`;
 
 // For rendering the main content.
 const renderRoverDataSection = (state) => {
-  let _roverData = state.get('roverData')
-    return `
+  let _roverData = state.get("roverData");
+  return `
       <div>${renderRoverSection(_roverData)}</div>
   `;
-  };
+};
 
 /**
  * Rovers rendering section.
@@ -154,7 +154,7 @@ const renderRoverSection = (data) => {
     <section class="rovers-container">
     <h2>Here are the rovers</h2>
     <div class="card-container">
-      ${convertArrayToString(data.map((rover,idx) => renderCardWithImage(rover,idx)))}
+      ${convertArrayToString(data.map((rover) => renderCardWithImage(rover)))}
       </div>
     </section>
     `;
@@ -165,22 +165,23 @@ const renderRoverSection = (data) => {
  * @param {} data the data to render in the card.
  * @returns a card with the information filled out.
  */
-const renderCardWithImage = (data, id) => {
+const renderCardWithImage = (data) => {
   const name = data.photo_manifest.name;
   const launchDate = data.photo_manifest.launch_date;
   const landingDate = data.photo_manifest.landing_date;
   const recentPhoto = data.photo_manifest.max_date;
 
   return `
-  <article class="card">
-    <div class="container" id=${"rover".concat("-", id)}>
+  <article class="card"  id=${name}>
+    <div class="container">
         <h4><b>${name}</b></h4>
-        <img class="rover-img" src="./images/curiosity-base.jpg" alt="Sample photo">
+        <img class="rover-img" src="./images/${name}-base.jpg" alt="Sample photo">
         <p>Launch date: ${launchDate} </p>
         <p>Landing date: ${landingDate} </p>
         <p>Most Recent photos: ${recentPhoto} </p>
         <p>Most Recent photos date: recentPhoto </p>
-    </div>
+        <button>View photos</button>
+      </div>
   </article>
   `;
 };
@@ -211,13 +212,15 @@ const createDate = (_date) => new Date(_date);
  */
 const renderImageOfTheDay = (data) => {
   // If image does not already exist, or it is not from today -- request it again
+
   if (!data.image || data.date === getTodaysDate()) {
-    getImageOfTheDay(store);
+    // getImageOfTheDay(store);
   }
 
   if (data === "" || data.image === "undefined") {
     return `<h1>Welcome to the MARS Lander home page</h1>`;
   }
+
   // check if the photo of the day is actually type video!
   if (data.image && data.image.media_type === "video") {
     return `
@@ -233,21 +236,28 @@ const renderImageOfTheDay = (data) => {
   }
 };
 
-
-// Fetches the NASA image of the day
+/**
+ * Fetch call to back end for image of the day.
+ * @param {*} state
+ */
 const getImageOfTheDay = (state) => {
-  // let { apod } = state;
   fetch(`http://localhost:3000/apod`)
     .then((res) => res.json())
-    .then((apod) => updateImageStore(store, {apod}));
+    .then((apod) => updateImageStore(store, apod));
 };
 
 /**
- * Fetches data for all the rovers
+ * Fetch all the data for the rovers.
  */
 const getAllRoversData = (state) => {
-  // let {roverData} = state;
   fetch(`http://localhost:3000/rovers`)
     .then((res) => res.json())
-    .then((roverData) => updateRoverDataStore(store, roverData))
+    .then((roverData) => updateRoverDataStore(store, roverData));
+};
+
+const getLatestImageByRoverName = (state, rover) => {
+  console.log(state, rover);
+  fetch(`http://localhost:3000/rover?name=${rover}`)
+    .then((res) => res.json())
+    .then((roverData) => updateRoverPhotos(store, roverData));
 };
