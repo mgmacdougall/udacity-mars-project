@@ -37,9 +37,16 @@ const render = async (root, state) => {
 
 ///// Attached event listerners takes place after the App root rendered complete
 const initListeners = async () => {
-  document
-    .getElementById("Spirit")
-    .addEventListener("click", (e) => console.log(e.target));
+  const spiritCard = document.getElementById("Spirit");
+  const roverSelection = document.getElementById("rovers");
+
+  roverSelection.addEventListener("change", (e) => {
+    const selection = e.target.options[rovers.selectedIndex];
+    const selectedItem = selection.value;
+    document.getElementById(selectedItem).scrollIntoView();
+  });
+
+  spiritCard.addEventListener("click", (e) => console.log(e.target));
 };
 
 // create content
