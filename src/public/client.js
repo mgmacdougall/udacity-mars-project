@@ -4,7 +4,7 @@ let store = Immutable.Map({
   rovers: ["Curiosity", "Opportunity", "Spirit"],
   roverData: [],
   roverPhotos: [],
-  activeRover:""
+  activeRover: ""
 });
 
 // add our markup to the page
@@ -28,37 +28,38 @@ const updateImageStore = (store, newState) => {
 
 const updateRoverPhotos = (store, newState, rName) => {
   let newImage = store.set("roverPhotos", newState);
-  let newUpdate = newImage.set("activeRover", rName );
+  let newUpdate = newImage.set("activeRover", rName);
   updateStore(store, newUpdate);
 };
 
 const render = async (root, state) => {
   root.innerHTML = App(state);
-  await initListeners();
-  await applyChangedState(state);
+  initListeners();
+  applyChangedState(state);
 };
 
 /**
- * Apply changeStateStyles
- * @param {*} currentState 
- * @returns 
+ * Apply changeStateStyles if required on re-render.
+ * @param {*} currentState
  */
-const applyChangedState = (currentState) =>{
+const applyChangedState = (currentState) => {
   const cards = document.querySelectorAll(".card");
   let activeRover = currentState.get("activeRover");
-  if(activeRover===""){
+  if (activeRover === "") {
     return;
   }
 
-  cards.forEach((card)=>{
-      if(card.id && activeRover !=card.id){
-        card.classList.add('hidden');
-      }
-  })
+  cards.forEach((card) => {
+    if (card.id && activeRover != card.id) {
+      card.classList.add("hidden");
+    }
+  });
+};
 
-}
-///// Attached event listerners takes place after the App root rendered complete
-const initListeners = async () => {
+/**
+ * Initializes UI Event Listeners on a render/re-render.
+ */
+const initListeners =  () => {
   const cards = document.querySelectorAll(".card");
   const roverSelection = document.getElementById("rovers");
 
@@ -68,18 +69,22 @@ const initListeners = async () => {
     document.getElementById(selectedItem).scrollIntoView();
   });
 
-  cards.forEach((item)=> item.addEventListener('click', (event)=>{
-    event.stopPropagation()
-    const cardId = event.currentTarget.id;
-    event.currentTarget.className="active"
-    getLatestImageByRoverName(store, cardId);
-  }));
+  // get the photo information 
+  const getPhotos = (state, roverName)=>{
 
-  // toggle the active if there
+    getLatestImageByRoverName(state, roverName); // this occurs and returns a value.
+    console.log(state.get('roverPhotos')) // this appears empty first 
 
+  }
 
-
-
+  cards.forEach((item) =>
+    item.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const cardId = event.currentTarget.id;
+      event.currentTarget.className = "active";
+      getPhotos(store, cardId);
+    })
+  );
 };
 
 // create content
@@ -295,8 +300,7 @@ const getAllRoversData = (state) => {
 };
 
 const getLatestImageByRoverName = (state, rover) => {
-  console.log(state, rover);
   fetch(`http://localhost:3000/rover?name=${rover}`)
     .then((res) => res.json())
-    .then((roverPhotos) => updateRoverPhotos(store, roverPhotos, rover));
+    .then((roverPhotos) => updateRoverPhotos(store, roverPhotos,rover));
 };
