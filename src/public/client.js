@@ -56,6 +56,57 @@ const applyChangedState = (currentState) => {
   });
 };
 
+// get the photo information
+const getPhotos = (state, roverName) => {
+  
+  let _rPhotos = state.get("roverPhotos");
+  if (_rPhotos.length === 0) {
+    let _roverData = state.get("roverData");
+    
+    const result = _roverData.filter(
+      (e) => e.photo_manifest.name === roverName
+      );
+      const test = result[0].photo_manifest.photos;
+      const lastPhotoDate = test[test.length - 1].earth_date;
+      
+      const photoQuery = { name: roverName, date: lastPhotoDate };
+      
+      getLatestImageByRoverName(state, photoQuery);
+    }else{
+    displayPhotos(state);
+  }
+};
+
+// displays the photos
+const displayPhotos = (data) => {
+  const roversContainer = document.getElementById("main-container");
+  const v = data.get("roverPhotos");
+  let dataArray = v.photos.photos;
+
+  dataArray.forEach((c) => console.log(c.img_src));
+  // const grid = renderImageGrid(dataArray)
+  const grid = renderImageGrid(dataArray)
+  roversContainer.innerHTML = grid;
+};
+
+
+const renderImageGrid = (img_data) =>{
+  return `
+    <ul>
+      ${img_data.map((image)=> createListItem(image))}
+    </ul>
+  `
+}
+
+const createListItem = image_details =>{
+  return `
+    <li>
+      <img src=${image_details.img_src}>
+    </li>
+  `
+}
+
+
 /**
  * Initializes UI Event Listeners on a render/re-render.
  */
@@ -63,41 +114,19 @@ const initListeners = () => {
   const cards = document.querySelectorAll(".card");
   const roverSelection = document.getElementById("rovers");
 
+
   roverSelection.addEventListener("change", (e) => {
     const selection = e.target.options[rovers.selectedIndex];
     const selectedItem = selection.value;
     document.getElementById(selectedItem).scrollIntoView();
   });
 
-  // get the photo information
-  const getPhotos = (state, roverName) => {
-    let _rPhotos = state.get('roverPhotos')
-    if(_rPhotos.length === 0){
-      let _roverData = state.get('roverData')
-      
-      const result = _roverData.filter((e)=> e.photo_manifest.name===roverName);
-      const test = result[0].photo_manifest.photos;
-      const lastPhotoDate = test[test.length-1].earth_date;
-      
-      const photoQuery = {name: roverName, date: lastPhotoDate}
-      
-      getLatestImageByRoverName(state, photoQuery);
-    }else{
-      displayPhotos(state);}
-    }
-
-  // displays the photos
-  const displayPhotos = (data) => {
-    const v = data.get('roverPhotos')
-    let dataArray = v.photos.photos
-    dataArray.forEach((c)=> console.log(c.img_src))
-  };
-
   cards.forEach((item) =>
     item.addEventListener("click", (event) => {
       event.stopPropagation();
       const cardId = event.currentTarget.id;
       event.currentTarget.className = "active"; // maybe
+      
       getPhotos(store, cardId);
     })
   );
@@ -215,7 +244,7 @@ const renderRoverDataSection = (state) => {
  */
 const renderRoverSection = (data) => {
   return `
-    <section class="rovers-container">
+    <section class="rovers-container" id="main-container">
     <h2>Here are the rovers</h2>
     <div class="card-container">
       ${convertArrayToString(data.map((rover) => renderCardWithImage(rover)))}
@@ -239,7 +268,7 @@ const renderCardWithImage = (data) => {
   <article class="card" id=${name}>
     <div class="container" >
         <h4><b>${name}</b></h4>
-        <p>Click the card twice to view the latest images.</p>
+        <p id="instructions">Click to filter rover!</p>
         <img class="rover-img" src="./images/${name}-base.jpg" alt="Sample photo">
         <p>Launch date: ${launchDate} </p>
         <p>Landing date: ${landingDate} </p>
@@ -248,17 +277,18 @@ const renderCardWithImage = (data) => {
   </article>
   `;
 };
+
 /**
  * Helper function to get the current date
  * @returns the current date
  */
- const getCurrentDate = () => new Date();
+const getCurrentDate = () => new Date();
 
- /**
-  *
-  * @returns The today's date
-  */
- const getTodaysDate = () => getCurrentDate().getDate();
+/**
+ *
+ * @returns The today's date
+ */
+const getTodaysDate = () => getCurrentDate().getDate();
 /**
  * Helper function to create a new date with a given date
  * @param {*} _date date to create.
@@ -275,7 +305,7 @@ const renderImageOfTheDay = (data) => {
   // If image does not already exist, or it is not from today -- request it again
 
   if (!data.image || data.date === getTodaysDate()) {
-    // getImageOfTheDay(store);
+    getImageOfTheDay(store);
   }
 
   if (data === "" || data.image === "undefined") {
@@ -311,9 +341,8 @@ const getImageOfTheDay = (state) => {
  * Fetch all the data for the rovers.
  */
 const getAllRoversData = (state) => {
-
-  const roverData = state.get('roverData');
-  if(roverData.length===0){
+  const roverData = state.get("roverData");
+  if (roverData.length === 0) {
     const rovers = state.get("rovers");
 
     const rover1 = rovers[0];
@@ -325,11 +354,10 @@ const getAllRoversData = (state) => {
       .then((res) => res.json())
       .then((roverData) => updateRoverDataStore(store, roverData));
   }
-  
 };
 
 const getLatestImageByRoverName = (state, data) => {
-  const {name, date} = data;
+  const { name, date } = data;
   fetch(`http://localhost:3000/rover?name=${name}&date=${date}`)
     .then((res) => res.json())
     .then((roverPhotos) => updateRoverPhotos(state, roverPhotos, name));
