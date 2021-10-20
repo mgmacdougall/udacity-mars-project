@@ -32,15 +32,11 @@ const test = {
 };
 // call to get all the rovers in one shot
 app.get("/rover", async (req, res) => {
-  //https://api.nasa.gov/mars-photos/api/v1/manifests/Curiosity/?api_key=<API KEY HERE></API>
   const { name, date } = req.query;
-
   try {
     let photos = await fetch(
-        // https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?earth_date=2015-6-3&api_key=DEMO_KEY
-      `https://api.nasa.gov/mars-photos/api/v1/rovers/spirit/photos?earth_date=2010-03-21&api_key=${process.env.API_KEY}`
+      `https://api.nasa.gov/mars-photos/api/v1/rovers/${name}/photos?earth_date=${date}&api_key=${process.env.API_KEY}`
     ).then((res) => res.json());
-
     console.log(photos)
     res.send({ photos });
   } catch (err) {
@@ -52,15 +48,28 @@ app.get("/apod", async (req, res) => {
   try {
     let image = await fetch(
       `https://api.nasa.gov/planetary/apod?api_key=${process.env.API_KEY}`
-    ).then((res) => res.json());
-    res.send({ image });
-  } catch (err) {
-    console.log("error:", err);
-  }
-});
+      ).then((res) => res.json());
 
-app.get("/rovers", (req, res) => {
-  res.json(allData);
+      res.send({ image });
+    } catch (err) {
+      console.log("error:", err);
+    }
+  });
+  
+  app.get("/rovers", async (req, res) => {
+    const{name1, name2, name3} = req.query;
+    const resultData = [];
+    try{
+      let result1 = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifests/${name1}/?api_key=${process.env.API_KEY}`).then((res)=>res.json())
+      let result2 = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifests/${name2}/?api_key=${process.env.API_KEY}`).then((res)=>res.json())
+      let result3 = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifests/${name3}/?api_key=${process.env.API_KEY}`).then((res)=>res.json())
+      resultData.push(result1,result2, result3)
+      res.send(resultData)
+      console.log(resultData)
+    }catch(err){
+      console.log('error:', err)
+    }
+  // res.json(allData);
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
