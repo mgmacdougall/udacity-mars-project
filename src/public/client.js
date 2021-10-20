@@ -4,7 +4,7 @@ let store = Immutable.Map({
   rovers: ["Curiosity", "Opportunity", "Spirit"],
   roverData: [],
   roverPhotos: [],
-  activeRover: ""
+  activeRover: "",
 });
 
 // add our markup to the page
@@ -59,7 +59,7 @@ const applyChangedState = (currentState) => {
 /**
  * Initializes UI Event Listeners on a render/re-render.
  */
-const initListeners =  () => {
+const initListeners = () => {
   const cards = document.querySelectorAll(".card");
   const roverSelection = document.getElementById("rovers");
 
@@ -69,19 +69,35 @@ const initListeners =  () => {
     document.getElementById(selectedItem).scrollIntoView();
   });
 
-  // get the photo information 
-  const getPhotos = (state, roverName)=>{
+  // get the photo information
+  const getPhotos = (state, roverName) => {
+    let _rPhotos = state.get('roverPhotos')
+    if(_rPhotos.length === 0){
+      let _roverData = state.get('roverData')
+      
+      const result = _roverData.filter((e)=> e.photo_manifest.name===roverName);
+      const test = result[0].photo_manifest.photos;
+      const lastPhotoDate = test[test.length-1].earth_date;
+      
+      const photoQuery = {name: roverName, date: lastPhotoDate}
+      
+      getLatestImageByRoverName(state, photoQuery);
+    }else{
+      displayPhotos(state);}
+    }
 
-    getLatestImageByRoverName(state, roverName); // this occurs and returns a value.
-    console.log(state.get('roverPhotos')) // this appears empty first 
-
-  }
+  // displays the photos
+  const displayPhotos = (data) => {
+    const v = data.get('roverPhotos')
+    let dataArray = v.photos.photos
+    dataArray.forEach((c)=> console.log(c.img_src))
+  };
 
   cards.forEach((item) =>
     item.addEventListener("click", (event) => {
       event.stopPropagation();
       const cardId = event.currentTarget.id;
-      event.currentTarget.className = "active";
+      event.currentTarget.className = "active"; // maybe
       getPhotos(store, cardId);
     })
   );
@@ -135,6 +151,9 @@ const renderGreeting = (data) => {
   return renderPageGreeting(data);
 };
 
+const renderInstruction = () => {
+  return `<span>Click Again to see recent Mission photos</span>`;
+};
 /**
  * Renders the main section of the introduction
  * @param {*} data to build other components
@@ -220,28 +239,26 @@ const renderCardWithImage = (data) => {
   <article class="card" id=${name}>
     <div class="container" >
         <h4><b>${name}</b></h4>
+        <p>Click the card twice to view the latest images.</p>
         <img class="rover-img" src="./images/${name}-base.jpg" alt="Sample photo">
         <p>Launch date: ${launchDate} </p>
         <p>Landing date: ${landingDate} </p>
         <p>Most Recent photos: ${recentPhoto} </p>
-        <p>Most Recent photos date: recentPhoto </p>
       </div>
   </article>
   `;
 };
-
 /**
  * Helper function to get the current date
  * @returns the current date
  */
-const getCurrentDate = () => new Date();
+ const getCurrentDate = () => new Date();
 
-/**
- *
- * @returns The today's date
- */
-const getTodaysDate = () => getCurrentDate().getDate();
-
+ /**
+  *
+  * @returns The today's date
+  */
+ const getTodaysDate = () => getCurrentDate().getDate();
 /**
  * Helper function to create a new date with a given date
  * @param {*} _date date to create.
@@ -251,7 +268,7 @@ const createDate = (_date) => new Date(_date);
 
 /**
  * This is the image of the day component
- * @param {*} data fro the apod.
+ * @param {*} data from the apod.
  * @returns the image of the date
  */
 const renderImageOfTheDay = (data) => {
@@ -294,13 +311,26 @@ const getImageOfTheDay = (state) => {
  * Fetch all the data for the rovers.
  */
 const getAllRoversData = (state) => {
-  fetch(`http://localhost:3000/rovers`)
-    .then((res) => res.json())
-    .then((roverData) => updateRoverDataStore(store, roverData));
+
+  const roverData = state.get('roverData');
+  if(roverData.length===0){
+    const rovers = state.get("rovers");
+
+    const rover1 = rovers[0];
+    const rover2 = rovers[1];
+    const rover3 = rovers[2];
+    fetch(
+      `http://localhost:3000/rovers?name1=${rover1}&name2=${rover2}&name3=${rover3}`
+    )
+      .then((res) => res.json())
+      .then((roverData) => updateRoverDataStore(store, roverData));
+  }
+  
 };
 
-const getLatestImageByRoverName = (state, rover) => {
-  fetch(`http://localhost:3000/rover?name=${rover}`)
+const getLatestImageByRoverName = (state, data) => {
+  const {name, date} = data;
+  fetch(`http://localhost:3000/rover?name=${name}&date=${date}`)
     .then((res) => res.json())
-    .then((roverPhotos) => updateRoverPhotos(store, roverPhotos,rover));
+    .then((roverPhotos) => updateRoverPhotos(state, roverPhotos, name));
 };
