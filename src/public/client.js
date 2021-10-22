@@ -4,7 +4,7 @@ let store = Immutable.Map({
   rovers: ["Curiosity", "Opportunity", "Spirit"],
   roverData: [],
   roverPhotos: [],
-  activeRover: "",
+  activeRover: ""
 });
 
 // add our markup to the page
@@ -27,7 +27,9 @@ const updateImageStore = (store, newState) => {
 };
 
 const updateRoverPhotos = (store, newState, rName) => {
-  let newImage = store.set("roverPhotos", newState);
+  let imgs = store.get("roverPhotos")
+  imgs.push(newState)
+  let newImage = store.set(imgs);
   let newUpdate = newImage.set("activeRover", rName);
   updateStore(store, newUpdate);
 };
@@ -37,6 +39,10 @@ const render = async (root, state) => {
   initListeners();
   applyChangedState(state);
 };
+
+/** Helper function to convert arrays to string values */
+const convertArrayToString = (arr) => arr.join("");
+
 
 /**
  * Apply changeStateStyles if required on re-render.
@@ -81,23 +87,29 @@ const getPhotos = (state, roverName) => {
 const displayPhotos = (data) => {
   const roversContainer = document.getElementById("main-container");
   const v = data.get("roverPhotos");
-  let dataArray = v.photos.photos;
-
-  dataArray.forEach((c) => console.log(c.img_src));
-  // const grid = renderImageGrid(dataArray)
+  let dataArray = v[0].photos.photos;
   const grid = renderImageGrid(dataArray)
   roversContainer.innerHTML = grid;
 };
 
-
+/**
+ * Creates the UL for the rendered images.
+ * @param {*} img_data 
+ * @returns 
+ */
 const renderImageGrid = (img_data) =>{
   return `
     <ul>
-      ${img_data.map((image)=> createListItem(image))}
+      ${convertArrayToString(img_data.map((image)=> createListItem(image)))}
     </ul>
   `
 }
 
+/**
+ * Creates the list item container for the images.
+ * @param {*} image_details 
+ * @returns 
+ */
 const createListItem = image_details =>{
   return `
     <li>
@@ -106,14 +118,12 @@ const createListItem = image_details =>{
   `
 }
 
-
 /**
  * Initializes UI Event Listeners on a render/re-render.
  */
 const initListeners = () => {
   const cards = document.querySelectorAll(".card");
   const roverSelection = document.getElementById("rovers");
-
 
   roverSelection.addEventListener("change", (e) => {
     const selection = e.target.options[rovers.selectedIndex];
@@ -125,12 +135,15 @@ const initListeners = () => {
     item.addEventListener("click", (event) => {
       event.stopPropagation();
       const cardId = event.currentTarget.id;
-      event.currentTarget.className = "active"; // maybe
+      event.currentTarget.className = "active";
       
       getPhotos(store, cardId);
     })
   );
 };
+
+
+
 
 // create content
 const App = (state) => {
@@ -207,8 +220,7 @@ const renderImageSection = (data) => {
   </section>`;
 };
 
-/** Helper function to convert arrays to string values */
-const convertArrayToString = (arr) => arr.join("");
+
 
 /**
  * Renders the Rover list for the end user.
@@ -305,7 +317,7 @@ const renderImageOfTheDay = (data) => {
   // If image does not already exist, or it is not from today -- request it again
 
   if (!data.image || data.date === getTodaysDate()) {
-    getImageOfTheDay(store);
+    //getImageOfTheDay(store);
   }
 
   if (data === "" || data.image === "undefined") {
@@ -358,7 +370,7 @@ const getAllRoversData = (state) => {
 
 const getLatestImageByRoverName = (state, data) => {
   const { name, date } = data;
-  fetch(`http://localhost:3000/rover?name=${name}&date=${date}`)
+  fetch(`http://localhost:3000/rover?name=${name.toLowerCase()}&date=${date}`)
     .then((res) => res.json())
     .then((roverPhotos) => updateRoverPhotos(state, roverPhotos, name));
 };
