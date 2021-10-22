@@ -34,9 +34,15 @@ const updateRoverPhotos = (store, newState, rName) => {
   updateStore(store, newUpdate);
 };
 
+const updateActiveRover = (store, roverName)=>{
+  let _temp = store.set('activeRover',roverName)
+  let _roverPhotos = _temp.set('roverPhotos',[]);
+  updateStore(store, _roverPhotos);
+}
+
 const render = async (root, state) => {
   root.innerHTML = App(state);
-  initListeners();
+  initListeners(state);
   applyChangedState(state);
 };
 
@@ -121,15 +127,40 @@ const createListItem = image_details =>{
 /**
  * Initializes UI Event Listeners on a render/re-render.
  */
-const initListeners = () => {
+const initListeners = (inState) => {
   const cards = document.querySelectorAll(".card");
-  const roverSelection = document.getElementById("rovers");
+  // Navigation work
+  const curiosityBtn = document.getElementById('Curiosity')
+  const opportunityBtn = document.getElementById('Opportunity')
+  const spiritBtn = document.getElementById('Spirit')
 
-  roverSelection.addEventListener("change", (e) => {
-    const selection = e.target.options[rovers.selectedIndex];
-    const selectedItem = selection.value;
-    document.getElementById(selectedItem).scrollIntoView();
-  });
+
+  curiosityBtn.addEventListener('click', (e)=>{
+    for(let card of cards){
+      if(card.id===e.target.id){
+        setActiveRover(inState, e.target.id)
+        getPhotos(inState, e.target.id)
+      }
+    }
+  })
+
+  opportunityBtn.addEventListener('click', (e)=>{
+    for(let card of cards){
+      if(card.id===e.target.id){
+        setActiveRover(inState, e.target.id)
+        getPhotos(inState, e.target.id)
+      }
+    }
+  })
+
+  spiritBtn.addEventListener('click', (e)=>{
+    for(let card of cards){
+      if(card.id===e.target.id){
+        setActiveRover(inState, e.target.id)
+        getPhotos(inState, e.target.id)
+      }
+    }
+  })
 
   cards.forEach((item) =>
     item.addEventListener("click", (event) => {
@@ -137,13 +168,10 @@ const initListeners = () => {
       const cardId = event.currentTarget.id;
       event.currentTarget.className = "active";
       
-      getPhotos(store, cardId);
+      getPhotos(inState, cardId);
     })
   );
 };
-
-
-
 
 // create content
 const App = (state) => {
@@ -229,9 +257,9 @@ const renderImageSection = (data) => {
 const renderRoverList = (data) => {
   return `
   <label for="rovers-select">Choose a Rover To More Details:</label>
-  <select name="rovers" id="rovers" placeholder="Select a rover">
+  <ul name="rovers" id="rovers" placeholder="Select a rover">
     ${convertArrayToString(data.map((e) => renderOptionItem(e)))}
-  </select>
+  </ul>
   `;
 };
 
@@ -240,7 +268,7 @@ const renderRoverList = (data) => {
  * @param {*} item to populate the option itme
  * @returns an individual option item with 'value' and 'item' set to the item
  */
-const renderOptionItem = (item) => `<option value="${item}">${item}</option>`;
+const renderOptionItem = (item) => `<li value="${item}"><button id=${item}>${item}</button></li>`;
 
 // For rendering the main content.
 const renderRoverDataSection = (state) => {
@@ -317,7 +345,7 @@ const renderImageOfTheDay = (data) => {
   // If image does not already exist, or it is not from today -- request it again
 
   if (!data.image || data.date === getTodaysDate()) {
-    //getImageOfTheDay(store);
+    // getImageOfTheDay(store);
   }
 
   if (data === "" || data.image === "undefined") {
@@ -374,3 +402,9 @@ const getLatestImageByRoverName = (state, data) => {
     .then((res) => res.json())
     .then((roverPhotos) => updateRoverPhotos(state, roverPhotos, name));
 };
+
+const setActiveRover = (state, rName)=>{
+
+    updateActiveRover(state,rName)
+
+}
