@@ -133,7 +133,7 @@ const initListeners = (inState) => {
   const curiosityBtn = document.getElementById('Curiosity')
   const opportunityBtn = document.getElementById('Opportunity')
   const spiritBtn = document.getElementById('Spirit')
-
+  const homeBtn = document.getElementById('home')
 
   curiosityBtn.addEventListener('click', (e)=>{
     for(let card of cards){
@@ -162,6 +162,16 @@ const initListeners = (inState) => {
     }
   })
 
+  homeBtn.addEventListener('click', (e)=>{
+    e.preventDefault();
+      let currentRover = inState.get('activeRover');
+      // If there is a current rover in the store, then run the reload
+      if(currentRover){
+        location.reload();
+        return false;
+      }
+  });
+
   cards.forEach((item) =>
     item.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -171,6 +181,8 @@ const initListeners = (inState) => {
       getPhotos(inState, cardId);
     })
   );
+
+
 };
 
 // create content
@@ -256,19 +268,22 @@ const renderImageSection = (data) => {
  */
 const renderRoverList = (data) => {
   return `
-  <label for="rovers-select">Choose a Rover To More Details:</label>
-  <ul name="rovers" id="rovers" placeholder="Select a rover">
+  <div id="main-content">
+  <label for="rovers-select">Choose a Rover To view more details:</label>
+  <div name="rovers" id="rovers" placeholder="Select a rover">
+    <button id="home">Home Page</button>
     ${convertArrayToString(data.map((e) => renderOptionItem(e)))}
-  </ul>
+  </div>
+  </div>
   `;
 };
 
 /**
- * Renders the HTML Option items for the user to select
+ * Renders the HTML Button items for the user to select
  * @param {*} item to populate the option itme
  * @returns an individual option item with 'value' and 'item' set to the item
  */
-const renderOptionItem = (item) => `<li value="${item}"><button id=${item}>${item}</button></li>`;
+const renderOptionItem = (item) => `<button id=${item}>${item}</button>`;
 
 // For rendering the main content.
 const renderRoverDataSection = (state) => {
@@ -285,7 +300,7 @@ const renderRoverDataSection = (state) => {
 const renderRoverSection = (data) => {
   return `
     <section class="rovers-container" id="main-container">
-    <h2>Here are the rovers</h2>
+    <h2>Rovers</h2>
     <div class="card-container">
       ${convertArrayToString(data.map((rover) => renderCardWithImage(rover)))}
       </div>
