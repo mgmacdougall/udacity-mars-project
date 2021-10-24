@@ -43,14 +43,19 @@ footer {
 }
 
 .container {
-  /* display:flex; */
-  /* text-align: center; */
+
 }
 
 .hidden{
   display: none;
 }
 
+.hide-nav-item{
+  visibility: hidden;
+  height: 0;
+  width: 0;
+  padding:0 !important;
+}
 .rover-img {
   max-width: 100%;
 }
@@ -85,6 +90,7 @@ img {
 #main-content>label{
   font-size: x-large;
 }
+
 #rovers{
   display: flex;
   width: 100vw;
