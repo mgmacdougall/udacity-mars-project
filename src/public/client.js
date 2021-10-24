@@ -4,7 +4,7 @@ let store = Immutable.Map({
   rovers: ["Curiosity", "Opportunity", "Spirit"],
   roverData: [],
   roverPhotos: [],
-  activeRover: ""
+  activeRover: "",
 });
 
 // add our markup to the page
@@ -27,18 +27,18 @@ const updateImageStore = (store, newState) => {
 };
 
 const updateRoverPhotos = (store, newState, rName) => {
-  let imgs = store.get("roverPhotos")
-  imgs.push(newState)
+  let imgs = store.get("roverPhotos");
+  imgs.push(newState);
   let newImage = store.set(imgs);
   let newUpdate = newImage.set("activeRover", rName);
   updateStore(store, newUpdate);
 };
 
-const updateActiveRover = (store, roverName)=>{
-  let _temp = store.set('activeRover',roverName)
-  let _roverPhotos = _temp.set('roverPhotos',[]);
+const updateActiveRover = (store, roverName) => {
+  let _temp = store.set("activeRover", roverName);
+  let _roverPhotos = _temp.set("roverPhotos", []);
   updateStore(store, _roverPhotos);
-}
+};
 
 const render = async (root, state) => {
   root.innerHTML = App(state);
@@ -48,7 +48,6 @@ const render = async (root, state) => {
 
 /** Helper function to convert arrays to string values */
 const convertArrayToString = (arr) => arr.join("");
-
 
 /**
  * Apply changeStateStyles if required on re-render.
@@ -70,21 +69,20 @@ const applyChangedState = (currentState) => {
 
 // get the photo information
 const getPhotos = (state, roverName) => {
-  
   let _rPhotos = state.get("roverPhotos");
   if (_rPhotos.length === 0) {
     let _roverData = state.get("roverData");
-    
+
     const result = _roverData.filter(
       (e) => e.photo_manifest.name === roverName
-      );
-      const test = result[0].photo_manifest.photos;
-      const lastPhotoDate = test[test.length - 1].earth_date;
-      
-      const photoQuery = { name: roverName, date: lastPhotoDate };
-      
-      getLatestImageByRoverName(state, photoQuery);
-    }else{
+    );
+    const test = result[0].photo_manifest.photos;
+    const lastPhotoDate = test[test.length - 1].earth_date;
+
+    const photoQuery = { name: roverName, date: lastPhotoDate };
+
+    getLatestImageByRoverName(state, photoQuery);
+  } else {
     displayPhotos(state);
   }
 };
@@ -92,37 +90,42 @@ const getPhotos = (state, roverName) => {
 // displays the photos
 const displayPhotos = (data) => {
   const roversContainer = document.getElementById("main-container");
-  const v = data.get("roverPhotos");
-  let dataArray = v[0].photos.photos;
-  const grid = renderImageGrid(dataArray)
+  const _data = data.get("roverPhotos");
+  let currentRover = data.get("activeRover");
+  let dataArray = _data[0].photos.photos;
+  let roverName = currentRover;
+  const grid = renderImageGrid(dataArray, roverName);
   roversContainer.innerHTML = grid;
 };
 
 /**
  * Creates the UL for the rendered images.
- * @param {*} img_data 
- * @returns 
+ * @param {*} img_data
+ * @returns
  */
-const renderImageGrid = (img_data) =>{
+const renderImageGrid = (img_data, name) => {
   return `
+    <div>
+      <h2>Images for ${name}:</h2>
     <ul>
-      ${convertArrayToString(img_data.map((image)=> createListItem(image)))}
+      ${convertArrayToString(img_data.map((image) => createListItem(image)))}
     </ul>
-  `
-}
+    </div>
+  `;
+};
 
 /**
  * Creates the list item container for the images.
- * @param {*} image_details 
- * @returns 
+ * @param {*} image_details
+ * @returns
  */
-const createListItem = image_details =>{
+const createListItem = (image_details) => {
   return `
     <li>
       <img src=${image_details.img_src}>
     </li>
-  `
-}
+  `;
+};
 
 /**
  * Initializes UI Event Listeners on a render/re-render.
@@ -130,46 +133,71 @@ const createListItem = image_details =>{
 const initListeners = (inState) => {
   const cards = document.querySelectorAll(".card");
   // Navigation work
-  const curiosityBtn = document.getElementById('Curiosity')
-  const opportunityBtn = document.getElementById('Opportunity')
-  const spiritBtn = document.getElementById('Spirit')
-  const homeBtn = document.getElementById('home')
+  const curosityNavigationBtn = document.getElementById("nav-Curiosity");
+  const curiosityBtn = document.getElementById("Curiosity");
 
-  curiosityBtn.addEventListener('click', (e)=>{
-    for(let card of cards){
-      if(card.id===e.target.id){
-        setActiveRover(inState, e.target.id)
-        getPhotos(inState, e.target.id)
+  const opportunityNavigationBtn = document.getElementById("nav-Opportunity");
+  const opportunityBtn = document.getElementById("Opportunity");
+
+  const spiritBtn = document.getElementById("Spirit");
+  const spiritNavigationBtn = document.getElementById("nav-Spirit");
+
+  const homeBtn = document.getElementById("home");
+  const dailyImgSection = document.getElementById("daily-img");
+
+  // Disable the menus if one item selected.
+  let anyPhotos = inState.get('roverPhotos');
+  if(anyPhotos.length>0){
+    let buttons = document.querySelectorAll('button');
+    for(let button of buttons){
+      if(button.innerText.toUpperCase() !== "REFRESH PAGE"){
+        button.classList.add('hide-nav-item')
       }
     }
-  })
+  }
 
-  opportunityBtn.addEventListener('click', (e)=>{
-    for(let card of cards){
-      if(card.id===e.target.id){
-        setActiveRover(inState, e.target.id)
-        getPhotos(inState, e.target.id)
+  homeBtn.addEventListener("click", (e) => {
+    dailyImgSection.scrollIntoView();
+  });
+
+  curosityNavigationBtn.addEventListener("click", (e) => {
+    curiosityBtn.scrollIntoView();
+    for (let card of cards) {
+      if (card.id === e.target.id) {
+        setActiveRover(inState, e.target.id);
+        getPhotos(inState, e.target.id);
       }
     }
-  })
+  });
 
-  spiritBtn.addEventListener('click', (e)=>{
-    for(let card of cards){
-      if(card.id===e.target.id){
-        setActiveRover(inState, e.target.id)
-        getPhotos(inState, e.target.id)
+  opportunityNavigationBtn.addEventListener("click", (e) => {
+    opportunityBtn.scrollIntoView();
+    for (let card of cards) {
+      if (card.id === e.target.id) {
+        setActiveRover(inState, e.target.id);
+        getPhotos(inState, e.target.id);
       }
     }
-  })
+  });
 
-  homeBtn.addEventListener('click', (e)=>{
+  spiritNavigationBtn.addEventListener("click", (e) => {
+    spiritBtn.scrollIntoView();
+    for (let card of cards) {
+      if (card.id === e.target.id) {
+        setActiveRover(inState, e.target.id);
+        getPhotos(inState, e.target.id);
+      }
+    }
+  });
+
+  homeBtn.addEventListener("click", (e) => {
     e.preventDefault();
-      let currentRover = inState.get('activeRover');
-      // If there is a current rover in the store, then run the reload
-      if(currentRover){
-        location.reload();
-        return false;
-      }
+    let currentRover = inState.get("activeRover");
+    // If there is a current rover in the store, then run the reload
+    if (currentRover) {
+      location.reload();
+      return false;
+    }
   });
 
   cards.forEach((item) =>
@@ -177,12 +205,9 @@ const initListeners = (inState) => {
       event.stopPropagation();
       const cardId = event.currentTarget.id;
       event.currentTarget.className = "active";
-      
       getPhotos(inState, cardId);
     })
   );
-
-
 };
 
 // create content
@@ -243,7 +268,7 @@ const renderInstruction = () => {
  */
 const renderMainSection = (data) => {
   return `
-    <section>
+    <section id="daily-img">
             ${renderComponent(renderImageSection(data))}
         </section> 
         `;
@@ -260,8 +285,6 @@ const renderImageSection = (data) => {
   </section>`;
 };
 
-
-
 /**
  * Renders the Rover list for the end user.
  * @param {*} data
@@ -271,7 +294,7 @@ const renderRoverList = (data) => {
   <div id="main-content">
   <label for="rovers-select">Choose a Rover To view more details:</label>
   <div name="rovers" id="rovers" placeholder="Select a rover">
-    <button id="home">Home Page</button>
+    <button id="home">Refresh Page</button>
     ${convertArrayToString(data.map((e) => renderOptionItem(e)))}
   </div>
   </div>
@@ -283,7 +306,7 @@ const renderRoverList = (data) => {
  * @param {*} item to populate the option itme
  * @returns an individual option item with 'value' and 'item' set to the item
  */
-const renderOptionItem = (item) => `<button id=${item}>${item}</button>`;
+const renderOptionItem = (item) => `<button id=nav-${item}>${item}</button>`;
 
 // For rendering the main content.
 const renderRoverDataSection = (state) => {
@@ -323,7 +346,7 @@ const renderCardWithImage = (data) => {
   <article class="card" id=${name}>
     <div class="container" >
         <h4><b>${name}</b></h4>
-        <p id="instructions">Click to filter rover!</p>
+        <p id="instructions">Click once to filter rover, click again to view photos.</p>
         <img class="rover-img" src="./images/${name}-base.jpg" alt="Sample photo">
         <p>Launch date: ${launchDate} </p>
         <p>Landing date: ${landingDate} </p>
@@ -360,7 +383,7 @@ const renderImageOfTheDay = (data) => {
   // If image does not already exist, or it is not from today -- request it again
 
   if (!data.image || data.date === getTodaysDate()) {
-    // getImageOfTheDay(store);
+    getImageOfTheDay(store);
   }
 
   if (data === "" || data.image === "undefined") {
@@ -418,8 +441,6 @@ const getLatestImageByRoverName = (state, data) => {
     .then((roverPhotos) => updateRoverPhotos(state, roverPhotos, name));
 };
 
-const setActiveRover = (state, rName)=>{
-
-    updateActiveRover(state,rName)
-
-}
+const setActiveRover = (state, rName) => {
+  updateActiveRover(state, rName);
+};
