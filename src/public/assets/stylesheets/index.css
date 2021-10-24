@@ -6,15 +6,16 @@ body {
   font-family: 'Open Sans', sans-serif;
   font-weight: bold;
   min-height: 100vh;
+  background-color: #eef2fb70;
 }
 
 header {
-  /* header styles */
+  display: flex;
+  flex-flow: row wrap;
 }
 
 main {
   flex: 1;
-  padding: 20px;
 }
 
 footer {
@@ -30,14 +31,15 @@ footer {
 .card {
   display: flex;
   align-content: flex-start;
-  /* width: 3em; */
   box-shadow: 5px 5px 15px 5px #000000;
   margin: 10px;
   padding: 10px;
+  background-color: #7280A2;
 }
 
 .card:hover{
-  background-color: yellow;
+  background-color: #2F3B55;
+  color:white;
 }
 
 .container {
@@ -73,15 +75,50 @@ img {
   vertical-align: bottom;
 }
 
+#main-content{
+  width: 100vw;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
+#main-content>label{
+  font-size: x-large;
+}
+#rovers{
+  display: flex;
+  width: 100vw;
+  flex-direction: column;
+  background-color: #7f8a7b;
+}
+
+#rovers button{
+  width:100%;
+  padding: 25px 0;
+  border: none;
+  display: block;
+  color: #000000;
+  text-transform: uppercase;
+  background-color: #efeefba6;
+}
+
+#rovers button:hover{
+  background-color:#7280A2;
+  color: black;
+}
+
+
 /* -------------------  TABLET  --------------------- */
 @media (min-width: 768px) {
   /* use mobile */
+
 }
 
 /* -------------------  DESKTOP  -------------------- */
 
 @media (min-width: 1224px) {
   /* use mobile */
+
 }
 
 /* -------------------  LARGE SCREENS  -------------- */
