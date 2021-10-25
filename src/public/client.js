@@ -332,6 +332,12 @@ const renderRoverSection = (data) => {
 };
 
 /**
+ * Uppercase string
+ * @param {*} str 
+ * @returns 
+ */
+const capitalize = str => str.charAt(0).toUpperCase() + str.substring(1);
+/**
  * Renders a card with the given information.
  * @param {} data the data to render in the card.
  * @returns a card with the information filled out.
@@ -341,7 +347,7 @@ const renderCardWithImage = (data) => {
   const launchDate = data.photo_manifest.launch_date;
   const landingDate = data.photo_manifest.landing_date;
   const recentPhoto = data.photo_manifest.max_date;
-
+  const status = data.photo_manifest.status;
   return `
   <article class="card" id=${name}>
     <div class="container" >
@@ -351,6 +357,7 @@ const renderCardWithImage = (data) => {
         <p>Launch date: ${launchDate} </p>
         <p>Landing date: ${landingDate} </p>
         <p>Most Recent photos: ${recentPhoto} </p>
+        <p>Status: ${capitalize(status)} </p>
       </div>
   </article>
   `;
