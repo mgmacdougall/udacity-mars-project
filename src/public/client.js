@@ -107,7 +107,7 @@ const renderImageGrid = (img_data, name) => {
   return `
     <div>
       <h2>Images for ${name}:</h2>
-    <ul>
+    <ul class="img-grid">
       ${convertArrayToString(img_data.map((image) => createListItem(image)))}
     </ul>
     </div>
@@ -121,7 +121,7 @@ const renderImageGrid = (img_data, name) => {
  */
 const createListItem = (image_details) => {
   return `
-    <li>
+    <li class="image-item">
       <img src=${image_details.img_src}>
     </li>
   `;
@@ -148,9 +148,9 @@ const initListeners = (inState) => {
   // Disable the menus if one item selected.
   let anyPhotos = inState.get('roverPhotos');
   if(anyPhotos.length>0){
-    let buttons = document.querySelectorAll('button');
+    let buttons = document.querySelectorAll('li');
     for(let button of buttons){
-      if(button.innerText.toUpperCase() !== "REFRESH PAGE"){
+      if(button.innerText.toUpperCase() !== "REFRESH"){
         button.classList.add('hide-nav-item')
       }
     }
@@ -216,7 +216,8 @@ const App = (state) => {
   let user = state.get("user");
   let rovers = state.get("rovers");
   return `
-  <header>${renderComponent(renderRoverList(rovers))}</header>
+  <header>
+      ${renderComponent(renderRoverList(rovers))}</header>
         <main>
             ${renderComponent(renderGreeting(user))}
             ${renderComponent(renderMainSection(apod))}
@@ -291,13 +292,13 @@ const renderImageSection = (data) => {
  */
 const renderRoverList = (data) => {
   return `
-  <div id="main-content">
-  <label for="rovers-select">Choose a Rover To view more details:</label>
-  <div name="rovers" id="rovers" placeholder="Select a rover">
-    <button id="home">Refresh Page</button>
-    ${convertArrayToString(data.map((e) => renderOptionItem(e)))}
-  </div>
-  </div>
+  <nav class="menu">
+    <div class="main-details">Mars Rovers</div>
+    <ul id="rovers" class="nav-bar-main">
+      <li id="home" class="nav-item">Refresh</li>
+        ${convertArrayToString(data.map((e) => renderOptionItem(e)))}
+    </ul>
+  </nav>
   `;
 };
 
@@ -306,7 +307,7 @@ const renderRoverList = (data) => {
  * @param {*} item to populate the option itme
  * @returns an individual option item with 'value' and 'item' set to the item
  */
-const renderOptionItem = (item) => `<button id=nav-${item}>${item}</button>`;
+const renderOptionItem = (item) => `<li id=nav-${item} class="nav-item">${item}</li>`;
 
 // For rendering the main content.
 const renderRoverDataSection = (state) => {
